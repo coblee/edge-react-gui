@@ -128,6 +128,7 @@ export function ManageTokensScene(props: Props) {
   })
 
   const extraData = useMemo(() => ({ allTokens, enabledTokenSet, customTokens }), [allTokens, enabledTokenSet, customTokens])
+  const getItemLayout = useHandler((data, index) => ({ length: theme.rem(4.25), offset: theme.rem(4.25) * index, index }))
 
   return (
     <SceneWrapper>
@@ -149,7 +150,14 @@ export function ManageTokensScene(props: Props) {
           onChangeText={setSearchValue}
         />
       </SceneHeader>
-      <FlatList data={filteredTokenIds} extraData={extraData} keyExtractor={keyExtractor} renderItem={renderRow} style={styles.tokenList} />
+      <FlatList
+        getItemLayout={getItemLayout}
+        data={filteredTokenIds}
+        extraData={extraData}
+        keyExtractor={keyExtractor}
+        renderItem={renderRow}
+        style={styles.tokenList}
+      />
       {!isCustomTokensSupported ? null : (
         <>
           <DividerLine marginRem={[0, 1]} />

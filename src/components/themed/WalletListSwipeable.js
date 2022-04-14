@@ -75,6 +75,8 @@ export function WalletListSwipeable(props: Props) {
     return null
   })
 
+  const getItemLayout = useHandler((data, index) => ({ length: theme.rem(4.25), offset: theme.rem(4.25) * index, index }))
+
   return (
     <FlatList
       contentOffset={{ x: 0, y: searching ? 0 : theme.rem(4.5) }}
@@ -84,6 +86,7 @@ export function WalletListSwipeable(props: Props) {
       ListHeaderComponent={header}
       refreshControl={refreshControl}
       renderItem={renderRow}
+      getItemLayout={getItemLayout}
     />
   )
 }

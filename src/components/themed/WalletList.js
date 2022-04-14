@@ -244,10 +244,19 @@ export function WalletList(props: Props) {
     return <WalletListSectionHeader title={section.section.title} />
   })
 
+  const getItemLayout = useHandler((data, index) => ({ length: theme.rem(4.25), offset: theme.rem(4.25) * index, index }))
+
   return sectionList == null ? (
-    <FlatList data={walletList} keyboardShouldPersistTaps="handled" renderItem={renderRow} style={margin} />
+    <FlatList data={walletList} keyboardShouldPersistTaps="handled" renderItem={renderRow} style={margin} getItemLayout={getItemLayout} />
   ) : (
-    <SectionList keyboardShouldPersistTaps="handled" renderItem={renderRow} renderSectionHeader={renderSectionHeader} sections={sectionList} style={margin} />
+    <SectionList
+      keyboardShouldPersistTaps="handled"
+      renderItem={renderRow}
+      renderSectionHeader={renderSectionHeader}
+      sections={sectionList}
+      style={margin}
+      getItemLayout={getItemLayout}
+    />
   )
 }
 
