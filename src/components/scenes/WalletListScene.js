@@ -6,7 +6,9 @@ import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 import s from '../../locales/strings.js'
 import { useEffect, useState } from '../../types/reactHooks.js'
 import { useSelector } from '../../types/reactRedux.js'
+import { type NavigationProp } from '../../types/routerTypes'
 import { getWalletListSlideTutorial, setUserTutorialList } from '../../util/tutorial.js'
+import { WalletList } from '../../WalletList'
 import { CrossFade } from '../common/CrossFade.js'
 import { SceneWrapper } from '../common/SceneWrapper.js'
 import { PasswordReminderModal } from '../modals/PasswordReminderModal.js'
@@ -15,13 +17,14 @@ import { WalletListSortModal } from '../modals/WalletListSortModal.js'
 import { Airship, showError } from '../services/AirshipInstance.js'
 import { type Theme, cacheStyles, useTheme } from '../services/ThemeContext.js'
 import { EdgeText } from '../themed/EdgeText.js'
-import { WalletList } from '../themed/WalletList.js'
 import { WalletListFooter } from '../themed/WalletListFooter.js'
 import { WalletListHeader } from '../themed/WalletListHeader.js'
 import { WalletListSortable } from '../themed/WalletListSortable.js'
 import { WiredProgressBar } from '../themed/WiredProgressBar.js'
 
-type Props = {}
+type Props = {
+  navigation: NavigationProp<'walletList'>
+}
 
 export function WalletListScene(props: Props) {
   const theme = useTheme()
@@ -86,7 +89,9 @@ export function WalletListScene(props: Props) {
         <CrossFade activeKey={loading ? 'spinner' : sorting ? 'sortList' : 'fullList'}>
           <ActivityIndicator key="spinner" color={theme.primaryText} style={styles.listSpinner} size="large" />
           <WalletList
+            navigation={props.navigation}
             key="fullList"
+            account={account}
             header={
               <WalletListHeader
                 sorting={sorting}
