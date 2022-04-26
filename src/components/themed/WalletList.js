@@ -5,6 +5,7 @@ import { FlatList, RefreshControl, SectionList } from 'react-native'
 
 import { selectWallet } from '../../actions/WalletActions.js'
 import { useAllTokens } from '../../hooks/useAllTokens.js'
+import { useWalletsSubscriber } from '../../hooks/useWalletsSubscriber.js'
 import s from '../../locales/strings'
 import { getExchangeDenominationFromState } from '../../selectors/DenominationSelectors.js'
 import { calculateFiatBalance } from '../../selectors/WalletSelectors.js'
@@ -97,6 +98,24 @@ export function WalletList(props: Props) {
   // Subscribe to all the tokens in the account:
   const allTokens = useAllTokens(account)
 
+  // Subscribe to the enabled tokens in the wallets:
+  type AllEnabledTokenIds = { [walletId: string]: string[] }
+  const [enabledTokenIds, setEnabledTokenIds] = useState<AllEnabledTokenIds>(() => {
+    const out: AllEnabledTokenIds = {}
+    for (const walletId of Object.keys(account.currencyWallets)) {
+      out[walletId] = account.currencyWallets[walletId].enabledTokenIds
+    }
+    return out
+  })
+  useWalletsSubscriber(account, wallet => {
+    return wallet.watch('enabledTokenIds', enabledTokenIds =>
+      setEnabledTokenIds(out => ({
+        ...out,
+        [wallet.id]: wallet.enabledTokenIds
+      }))
+    )
+  })
+
   function sortWalletList(walletList: WalletListItem[]): WalletListItem[] {
     const getFiatBalance = (wallet: GuiWallet, fullCurrencyCode: string): number => {
       const currencyWallet = account.currencyWallets[wallet.id]
@@ -166,7 +185,7 @@ export function WalletList(props: Props) {
           key: walletId
         })
       } else if (wallet != null) {
-        const { enabledTokens, name, pluginId } = asSafeDefaultGuiWallet(wallet)
+        const { name, pluginId } = asSafeDefaultGuiWallet(wallet)
         const { currencyInfo } = account.currencyConfig[pluginId]
         const { currencyCode, displayName } = currencyInfo
 
@@ -180,10 +199,10 @@ export function WalletList(props: Props) {
         }
 
         // Initialize tokens
-        for (const tokenCode of enabledTokens) {
-          const tokenId = Object.keys(allTokens[pluginId]).find(id => allTokens[pluginId][id].currencyCode === tokenCode)
-          if (tokenId == null) continue
+        for (const tokenId of enabledTokenIds[walletId] ?? []) {
           const token = allTokens[pluginId][tokenId]
+          if (token == null) continue
+          const tokenCode = token.currencyCode
 
           const fullCurrencyCode = `${currencyCode}-${tokenCode}`
 
