@@ -2,6 +2,7 @@
 
 import { asArray, asEither, asMap, asNull, asNumber, asObject, asOptional, asString } from 'cleaners'
 
+// import { type RouterProps } from 'react-native-router-flux'
 import { type Permission } from '../reducers/PermissionsReducer.js'
 import { type EdgeTokenId } from '../types/types.js'
 import { type UriQueryMap } from './WebTypes'
@@ -23,6 +24,9 @@ export type GuiPlugin = {
   // The storage location to make available in the `EdgeProvider`.
   // Also used for conversion tracking:
   storeId: string,
+
+  // Is a native plugin written in React Native
+  nativePlugin?: boolean,
 
   // The URI to show in the WebView.
   // Both the plugin list & deep links can add stuff to the end of this:
@@ -66,6 +70,10 @@ export type GuiPluginRow = {
   paymentTypeLogoKey?: string,
   paymentTypes: string[],
   cryptoCodes: string[]
+}
+
+export type GuiNativePluginProps = {
+  plugin: GuiPlugin
 }
 
 /**

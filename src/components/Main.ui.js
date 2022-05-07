@@ -102,6 +102,7 @@ import {
   WALLET_LIST_SCENE
 } from '../constants/SceneKeys.js'
 import s from '../locales/strings.js'
+import { GuiPluginEnterAmountScene } from '../plugins/gui/scenes/EnterAmountScene'
 import { type Permission } from '../reducers/PermissionsReducer.js'
 import { connect } from '../types/reactRedux.js'
 import { Actions, withNavigation } from '../types/routerTypes.js'
@@ -430,6 +431,13 @@ export class MainComponent extends React.Component<Props> {
                 renderTitle={props => <HeaderTitle title={props.route.params.plugin.displayName} />}
                 renderLeftButton={renderPluginBackButton()}
                 renderRightButton={<HeaderTextButton type="exit" placement="right" />}
+                hideTabBar
+              />
+              <Scene
+                key="guiPluginEnterAmount"
+                component={withNavigation(ifLoggedIn(GuiPluginEnterAmountScene))}
+                navTransparent
+                renderLeftButton={renderPluginBackButton()}
                 hideTabBar
               />
             </Stack>
