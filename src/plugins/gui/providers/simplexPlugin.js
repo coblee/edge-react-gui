@@ -1,6 +1,7 @@
 // @flow
 import { add, div, mul, sub } from 'biggystring'
 
+import { snooze } from '../../../util/utils'
 import {
   type FiatProviderApproveQuoteParams,
   type FiatProviderAssetMap,
@@ -22,6 +23,7 @@ export const simplexProvider: FiatProviderFactory = async () => {
     pluginId,
     getSupportedAssets: async (): Promise<FiatProviderAssetMap> => allowedCurrencyCodes,
     getQuote: async (params: FiatProviderGetQuoteParams): Promise<FiatProviderQuote> => {
+      await snooze(Math.random() * 3000)
       const { tokenId, fiatCurrencyCode, exchangeAmount, amountType, direction } = params
 
       const { currencyCode } = tokenId

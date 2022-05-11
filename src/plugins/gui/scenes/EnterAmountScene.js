@@ -10,23 +10,32 @@ import { type Theme, cacheStyles, useTheme } from '../../../components/services/
 import { OutlinedTextInput } from '../../../components/themed/OutlinedTextInput.js'
 import { SceneHeader } from '../../../components/themed/SceneHeader.js'
 import { memo, useCallback, useRef, useState } from '../../../types/reactHooks.js'
-import type { RouteProp } from '../../../types/routerTypes'
+import type { NavigationProp, RouteProp } from '../../../types/routerTypes'
 
 type Props = {
-  route: RouteProp<'guiPluginEnterAmount'>
+  route: RouteProp<'guiPluginEnterAmount'>,
+  navigation: NavigationProp<'guiPluginEnterAmount'>
 }
 
 export const FiatPluginEnterAmountScene = memo((props: Props): React.Node => {
   const theme = useTheme()
   const styles = getStyles(theme)
+  // const { navigation } = props
   const { headerIconUri, headerTitle, onSubmit, convertValue, onChangeText, label1, label2, initialAmount1 = '' } = props.route.params
-  const [value1, setValue1] = useState(initialAmount1)
-  const [value2, setValue2] = useState('')
+  const [value1, setValue1] = useState<string>(initialAmount1)
+  const [value2, setValue2] = useState<string>('')
   const firstRun = useRef<boolean>(true)
   const lastUsed = useRef<number>(1)
+  // const cleanListeners = []
+  // cleanListeners.push(navigation.addListener('didBlur', event => console.log('event didBlur', event)))
+  // cleanListeners.push(navigation.addListener('didFocus', event => console.log('event didFocus', event)))
+  // cleanListeners.push(navigation.addListener('willBlur', event => console.log('event willBlur', event)))
+  // cleanListeners.push(navigation.addListener('willFocus', event => console.log('event willFocus', event)))
 
   if (firstRun.current && initialAmount1 != null) {
-    convertValue(1, initialAmount1).then(val => setValue2(val))
+    convertValue(1, initialAmount1).then(val => {
+      if (typeof val === 'string') setValue2(val)
+    })
   }
   firstRun.current = false
   let headerIcon = null
@@ -39,7 +48,10 @@ export const FiatPluginEnterAmountScene = memo((props: Props): React.Node => {
       lastUsed.current = 1
       onChangeText(1, value)
       setValue1(value)
-      convertValue(1, value).then(v => setValue2(v))
+      setValue2('...')
+      convertValue(1, value).then(v => {
+        if (typeof v === 'string') setValue2(v)
+      })
     },
     [convertValue, onChangeText]
   )
@@ -48,7 +60,10 @@ export const FiatPluginEnterAmountScene = memo((props: Props): React.Node => {
       lastUsed.current = 2
       onChangeText(2, value)
       setValue2(value)
-      convertValue(2, value).then(v => setValue1(v))
+      setValue1('...')
+      convertValue(2, value).then(v => {
+        if (typeof v === 'string') setValue1(v)
+      })
     },
     [convertValue, onChangeText]
   )

@@ -186,7 +186,7 @@ export type ParamList = {
     label1: string,
     label2: string,
     onChangeText: (fieldNum: number, value: string) => Promise<void>,
-    convertValue: (sourceFieldNum: number, value: string) => Promise<string>,
+    convertValue: (sourceFieldNum: number, value: string) => Promise<string | void>,
     initialAmount1?: string,
     headerIconUri?: string
   |},

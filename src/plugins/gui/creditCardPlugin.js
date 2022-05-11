@@ -1,5 +1,5 @@
 // @flow
-import { div, gt, mul, toFixed } from 'biggystring'
+import { div, gt, toFixed } from 'biggystring'
 
 import { type EdgeTokenIdExtended } from '../../types/types'
 import { type FiatPlugin, type FiatPluginFactory, type FiatPluginFactoryArgs } from './fiatPluginTypes'
@@ -14,9 +14,6 @@ const promiseWithTimeout = <T>(promise: Promise<T>, timeoutMs: number = 5000): P
 const safePromise = <T>(promise: Promise<T>): Promise<T> | Promise<void> => promise.catch(e => undefined)
 
 export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFactoryArgs) => {
-  let fiatAmount = '0'
-  let cryptoAmount = '0'
-
   const { showUi, account } = params
 
   const assetPromises = []
@@ -29,15 +26,16 @@ export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFact
     assetPromises.push(promiseWithTimeout(safePromise(provider.getSupportedAssets())))
   }
 
-  const onChangeText = async (fieldNum: number, value: string): Promise<void> => {
-    if (fieldNum === 1) fiatAmount = value
-    else cryptoAmount = value
-  }
-  const onSubmit = lastUsed => {
-    console.log(`lastUsed: ${lastUsed.toString()}`)
-    console.log(`fiatAmount: ${fiatAmount}`)
-    console.log(`cryptoAmount: ${cryptoAmount}`)
-  }
+  // const onChangeText = async (fieldNum: number, value: string): Promise<void> => {
+  //   if (fieldNum === 1) fiatAmount = value
+  //   else cryptoAmount = value
+  // }
+  // const onSubmit = response => {
+  //   console.log(`onSubmit response`, response)
+
+  //   console.log(`fiatAmount: ${fiatAmount}`)
+  //   console.log(`cryptoAmount: ${cryptoAmount}`)
+  // }
 
   const fiatPlugin: FiatPlugin = {
     pluginId: 'creditcard',
@@ -65,13 +63,18 @@ export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFact
       const coreWallet = account.currencyWallets[walletId]
       const currencyPluginId = coreWallet.currencyInfo.pluginId
       if (!coreWallet) return showUi.errorDropdown(new Error(`Missing wallet with ID ${walletId}`))
+
+      let counter = 0
+      let bestQuote: FiatProviderQuote | void
+
       // Navigate to scene to have user enter amount
-      await showUi.enterAmount({
+      const response = await showUi.enterAmount({
         headerTitle: `Buy ${currencyCode}`,
         label1: `Amount USD`,
         label2: `Amount ${currencyCode}`,
         initialAmount1: '500',
-        convertValue: async (sourceFieldNum: number, value: string): Promise<string> => {
+        convertValue: async (sourceFieldNum: number, value: string): Promise<string | void> => {
+          const myCounter = ++counter
           let quoteParams: FiatProviderGetQuoteParams
 
           if (sourceFieldNum === 1) {
@@ -96,7 +99,10 @@ export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFact
 
           const quotePromises = providers.map(p => promiseWithTimeout(safePromise(p.getQuote(quoteParams))))
           const quotes = await Promise.all(quotePromises)
-          let bestQuote: FiatProviderQuote | void
+
+          // Only update with the latest call to convertValue
+          if (myCounter !== counter) return
+
           let bestQuoteRatio = '0'
           for (const quote of quotes) {
             if (quote == null) continue
@@ -107,16 +113,19 @@ export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFact
               bestQuote = quote
             }
           }
-          if (bestQuote == null) return '0'
+          if (bestQuote == null) return
+
           if (sourceFieldNum === 1) {
             return toFixed(bestQuote.cryptoAmount, 0, 6)
           } else {
             return toFixed(bestQuote.fiatAmount, 0, 2)
           }
-        },
-        onChangeText,
-        onSubmit
+        }
       })
+      console.log(`enterAmount response`, response)
+
+      if (bestQuote == null) showUi.popScene()
+      showUi.popScene()
     }
   }
   return fiatPlugin

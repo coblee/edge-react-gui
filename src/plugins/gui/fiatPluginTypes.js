@@ -7,8 +7,8 @@ export type FiatPluginAmountEntryParams = {
   headerTitle: string,
   label1: string,
   label2: string,
-  onChangeText: (fieldNum: number, value: string) => Promise<void>,
-  convertValue: (sourceFieldNum: number, value: string) => Promise<string>,
+  // onChangeText: (fieldNum: number, value: string) => Promise<void>,
+  convertValue: (sourceFieldNum: number, value: string) => Promise<string | void>,
   initialAmount1?: string,
   headerIconUri?: string
 }
@@ -21,7 +21,8 @@ export type FiatPluginUi = {
     currencyCode: string
   }>,
   errorDropdown: (error: Error) => Promise<void>,
-  enterAmount: (params: FiatPluginAmountEntryParams) => Promise<FiatPluginEnterAmountResponse>
+  enterAmount: (params: FiatPluginAmountEntryParams) => Promise<FiatPluginEnterAmountResponse>,
+  popScene: () => {}
   // showWebView: (params: { webviewUrl: string }) => Promise<void>
 }
 
