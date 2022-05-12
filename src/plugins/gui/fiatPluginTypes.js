@@ -14,8 +14,9 @@ export type FiatPluginAmountEntryParams = {
 }
 
 export type FiatPluginEnterAmountResponse = { lastUsed: number, value1: string, value2: string }
-
+export type FiatPluginOpenWebViewParams = { url: string }
 export type FiatPluginUi = {
+  openWebView: FiatPluginOpenWebViewParams => Promise<void>,
   walletPicker: (params: { headerTitle: string, allowedCurrencyCodes?: EdgeTokenIdExtended[], showCreateWallet?: boolean }) => Promise<{
     walletId: string,
     currencyCode: string

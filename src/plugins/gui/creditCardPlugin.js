@@ -26,17 +26,6 @@ export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFact
     assetPromises.push(promiseWithTimeout(safePromise(provider.getSupportedAssets())))
   }
 
-  // const onChangeText = async (fieldNum: number, value: string): Promise<void> => {
-  //   if (fieldNum === 1) fiatAmount = value
-  //   else cryptoAmount = value
-  // }
-  // const onSubmit = response => {
-  //   console.log(`onSubmit response`, response)
-
-  //   console.log(`fiatAmount: ${fiatAmount}`)
-  //   console.log(`cryptoAmount: ${cryptoAmount}`)
-  // }
-
   const fiatPlugin: FiatPlugin = {
     pluginId: 'creditcard',
     startPlugin: async () => {

@@ -21,6 +21,7 @@ export const executePlugin = async (params: {
   const { pluginId } = guiPlugin
 
   const showUi = {
+    openWebView: async params => {},
     walletPicker: async params => {
       const { headerTitle, allowedCurrencyCodes } = params
       const walletListResult = await Airship.show(bridge => (
