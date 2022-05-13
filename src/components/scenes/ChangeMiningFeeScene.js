@@ -1,5 +1,6 @@
 // @flow
 
+import { hook } from 'cavy'
 import { type JsonObject } from 'edge-core-js'
 import * as React from 'react'
 import { ScrollView, View } from 'react-native'
@@ -8,6 +9,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 import { FEE_STRINGS } from '../../constants/WalletAndCurrencyConstants.js'
 import s from '../../locales/strings.js'
+import { type TestProps } from '../../types/reactRedux.js'
 import { type NavigationProp, type RouteProp } from '../../types/routerTypes.js'
 import { type FeeOption } from '../../types/types.js'
 import { SceneWrapper } from '../common/SceneWrapper.js'
@@ -24,7 +26,7 @@ type OwnProps = {
   route: RouteProp<'changeMiningFee'>
 }
 
-type Props = OwnProps & ThemeProps
+type Props = OwnProps & ThemeProps & TestProps
 
 type State = {
   networkFeeOption: FeeOption,
@@ -46,7 +48,7 @@ const feeOptions = {
   }
 }
 
-export class ChangeMiningFeeComponent extends React.PureComponent<Props, State> {
+export class ChangeMiningFeeComponent extends React.PureComponent<Props & TestProps, State> {
   constructor(props: Props) {
     super(props)
     const { networkFeeOption = 'standard', customNetworkFee = {} } = this.props.route.params.guiMakeSpendInfo
@@ -117,6 +119,7 @@ export class ChangeMiningFeeComponent extends React.PureComponent<Props, State> 
                 label={feeOptions[feeSetting].text}
                 value={networkFeeOption === feeSetting}
                 onPress={() => this.setState({ networkFeeOption: feeSetting })}
+                ref={this.props.generateTestHook('ChangeMiningFeeScene.fee')}
               >
                 <MaterialCommunityIcons name={feeOptions[feeSetting].icon} style={styles.settingsIcon} />
               </SettingsRadioRow>
@@ -203,4 +206,4 @@ const getStyles = cacheStyles((theme: Theme) => {
   }
 })
 
-export const ChangeMiningFeeScene = withTheme(ChangeMiningFeeComponent)
+export const ChangeMiningFeeScene = hook(withTheme(ChangeMiningFeeComponent))
