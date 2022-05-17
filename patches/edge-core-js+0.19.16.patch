@@ -1,0 +1,21 @@
+diff --git a/node_modules/edge-core-js/android/src/main/java/app/edge/reactnative/core/EdgeCoreWebView.java b/node_modules/edge-core-js/android/src/main/java/app/edge/reactnative/core/EdgeCoreWebView.java
+index 767634e..6f2c48b 100644
+--- a/node_modules/edge-core-js/android/src/main/java/app/edge/reactnative/core/EdgeCoreWebView.java
++++ b/node_modules/edge-core-js/android/src/main/java/app/edge/reactnative/core/EdgeCoreWebView.java
+@@ -1,6 +1,7 @@
+ package app.edge.reactnative.core;
+
+ import android.graphics.Bitmap;
++import android.os.Build;
+ import android.util.Base64;
+ import android.webkit.JavascriptInterface;
+ import android.webkit.WebView;
+@@ -19,7 +20,7 @@ import org.json.JSONObject;
+
+ class EdgeCoreWebView extends WebView {
+   private static final String BASE_URL = "file:///android_asset/";
+-  private final ExecutorService mPool = Executors.newCachedThreadPool();
++  private final ExecutorService mPool = Executors.newFixedThreadPool(Build.VERSION.SDK_INT >= 17 ? Runtime.getRuntime().availableProcessors() * 2 : 2);
+   private final ThemedReactContext mContext;
+   private final Disklet mDisklet;
+
