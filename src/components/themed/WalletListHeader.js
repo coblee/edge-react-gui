@@ -7,8 +7,9 @@ import Ionicon from 'react-native-vector-icons/Ionicons'
 import { Fontello } from '../../assets/vector/index.js'
 import { CREATE_WALLET_SELECT_CRYPTO } from '../../constants/SceneKeys.js'
 import s from '../../locales/strings.js'
+import { useEffect, useRef } from '../../types/reactHooks.js'
 import { Actions } from '../../types/routerTypes.js'
-import { type Theme, type ThemeProps, cacheStyles, withTheme } from '../services/ThemeContext.js'
+import { type Theme, cacheStyles, getTheme } from '../services/ThemeContext.js'
 import { EdgeText } from '../themed/EdgeText.js'
 import { PromoCard } from '../themed/PromoCard.js'
 import { WiredBalanceBox } from '../themed/WiredBalanceBox.js'
@@ -23,73 +24,66 @@ type OwnProps = {
   onChangeSearchingState: (searching: boolean) => void
 }
 
-type Props = OwnProps & ThemeProps
+type Props = OwnProps
 
-export class WalletListHeaderComponent extends React.PureComponent<Props> {
-  textInput: { current: OutlinedTextInputRef | null } = React.createRef()
+export const WalletListHeader = (props: Props) => {
+  const { sorting, searching, searchText, openSortModal, onChangeSearchText, onChangeSearchingState } = props
+  const theme = getTheme()
+  const styles = getStyles(theme)
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.searching === false && this.props.searching === true && this.textInput.current) {
-      this.textInput.current.focus()
+  const textInput = useRef<OutlinedTextInputRef>(null)
+
+  useEffect(() => {
+    if (textInput.current != null && searching === true) {
+      textInput.current.focus()
+    }
+  }, [searching, textInput])
+
+  const handleSearchDone = () => {
+    onChangeSearchingState(false)
+    if (textInput.current != null) {
+      textInput.current.clear()
     }
   }
 
-  handleOnChangeText = (input: string) => this.props.onChangeSearchText(input)
-
-  handleTextFieldFocus = () => {
-    this.props.onChangeSearchingState(true)
-  }
-
-  handleSearchDone = () => {
-    this.props.onChangeSearchingState(false)
-    if (this.textInput.current) {
-      this.textInput.current.clear()
-    }
-  }
-
-  render() {
-    const { sorting, searching, searchText, theme } = this.props
-    const styles = getStyles(theme)
-
-    return (
-      <>
-        <View style={styles.searchContainer}>
-          <View style={{ flex: 1, flexDirection: 'column' }}>
-            <OutlinedTextInput
-              returnKeyType="search"
-              label={s.strings.wallet_list_wallet_search}
-              onChangeText={this.handleOnChangeText}
-              value={searchText}
-              onFocus={this.handleTextFieldFocus}
-              ref={this.textInput}
-              marginRem={[0, 0, 1]}
-              searchIcon
-            />
-          </View>
-          {searching && (
-            <TouchableOpacity onPress={this.handleSearchDone} style={styles.searchDoneButton}>
-              <EdgeText style={{ color: theme.textLink }}>{s.strings.string_done_cap}</EdgeText>
-            </TouchableOpacity>
-          )}
+  return (
+    <>
+      <View style={styles.searchContainer}>
+        <View style={{ flex: 1, flexDirection: 'column' }}>
+          <OutlinedTextInput
+            returnKeyType="search"
+            label={s.strings.wallet_list_wallet_search}
+            onChangeText={input => onChangeSearchText(input)}
+            value={searchText}
+            onFocus={() => onChangeSearchingState(true)}
+            ref={textInput}
+            marginRem={[0, 0, 1]}
+            searchIcon
+          />
         </View>
-        {!searching && <WiredBalanceBox />}
-        {!sorting && !searching && (
-          <View style={styles.headerContainer}>
-            <EdgeText style={styles.headerText}>{s.strings.title_wallets}</EdgeText>
-            <View key="defaultButtons" style={styles.headerButtonsContainer}>
-              <TouchableOpacity style={styles.addButton} onPress={() => Actions.push(CREATE_WALLET_SELECT_CRYPTO)}>
-                <Ionicon name="md-add" size={theme.rem(1.5)} color={theme.iconTappable} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={this.props.openSortModal}>
-                <Fontello name="sort" size={theme.rem(1.5)} color={theme.iconTappable} />
-              </TouchableOpacity>
-            </View>
-          </View>
+        {searching && (
+          <TouchableOpacity onPress={handleSearchDone} style={styles.searchDoneButton}>
+            <EdgeText style={{ color: theme.textLink }}>{s.strings.string_done_cap}</EdgeText>
+          </TouchableOpacity>
         )}
-        {!searching && <PromoCard />}
-      </>
-    )
-  }
+      </View>
+      {!searching && <WiredBalanceBox />}
+      {!sorting && !searching && (
+        <View style={styles.headerContainer}>
+          <EdgeText style={styles.headerText}>{s.strings.title_wallets}</EdgeText>
+          <View key="defaultButtons" style={styles.headerButtonsContainer}>
+            <TouchableOpacity style={styles.addButton} onPress={() => Actions.push(CREATE_WALLET_SELECT_CRYPTO)}>
+              <Ionicon name="md-add" size={theme.rem(1.5)} color={theme.iconTappable} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={openSortModal}>
+              <Fontello name="sort" size={theme.rem(1.5)} color={theme.iconTappable} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      {!searching && <PromoCard />}
+    </>
+  )
 }
 
 const getStyles = cacheStyles((theme: Theme) => ({
@@ -122,5 +116,3 @@ const getStyles = cacheStyles((theme: Theme) => ({
     paddingBottom: theme.rem(1)
   }
 }))
-
-export const WalletListHeader = withTheme(WalletListHeaderComponent)
