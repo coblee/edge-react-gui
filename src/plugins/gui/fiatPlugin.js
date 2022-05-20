@@ -23,10 +23,8 @@ export const executePlugin = async (params: {
   const showUi = {
     openWebView: async params => {},
     walletPicker: async params => {
-      const { headerTitle, allowedCurrencyCodes } = params
-      const walletListResult = await Airship.show(bridge => (
-        <WalletListModal bridge={bridge} headerTitle={headerTitle} allowedCurrencyCodes={allowedCurrencyCodes} />
-      ))
+      const { headerTitle, allowedAssets } = params
+      const walletListResult = await Airship.show(bridge => <WalletListModal bridge={bridge} headerTitle={headerTitle} allowedAssets={allowedAssets} />)
       return walletListResult
     },
     errorDropdown: async (e: Error) => {

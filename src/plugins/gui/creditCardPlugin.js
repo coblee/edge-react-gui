@@ -1,8 +1,9 @@
 // @flow
 import { div, gt, toFixed } from 'biggystring'
+import { type EdgeDataStore } from 'edge-core-js'
 
-import { type EdgeTokenIdExtended } from '../../types/types'
-import { type FiatPlugin, type FiatPluginFactory, type FiatPluginFactoryArgs } from './fiatPluginTypes'
+import { type EdgeTokenId } from '../../types/types'
+import { type FiatPlugin, type FiatPluginFactory, type FiatPluginFactoryArgs, type FiatPluginStore } from './fiatPluginTypes'
 import { type FiatProviderGetQuoteParams, type FiatProviderQuote } from './fiatProviderTypes'
 import { simplexProvider } from './providers/simplexPlugin'
 
@@ -13,39 +14,62 @@ const promiseWithTimeout = <T>(promise: Promise<T>, timeoutMs: number = 5000): P
 
 const safePromise = <T>(promise: Promise<T>): Promise<T> | Promise<void> => promise.catch(e => undefined)
 
+const createStore = (store: EdgeDataStore, storeId: string): FiatPluginStore => {
+  return {
+    writeData: async (data: { [key: string]: string }): Promise<{ [success: string]: boolean }> => {
+      console.log(`${storeId}: fiatProvider writeData: `, JSON.stringify(data))
+      await Promise.all(Object.keys(data).map(key => store.setItem(storeId, key, data[key])))
+      console.log(`${storeId}: fiatProvider writeData Success`)
+      return { success: true }
+    },
+
+    readData: async (keys: string[]): Promise<{ [key: string]: string }> => {
+      const returnObj = {}
+      for (let i = 0; i < keys.length; i++) {
+        returnObj[keys[i]] = await store.getItem(storeId, keys[i]).catch(e => undefined)
+      }
+      console.log(`${storeId}: fiatProvider readData: `, JSON.stringify(returnObj))
+      return returnObj
+    }
+  }
+}
+
 export const creditCardPlugin: FiatPluginFactory = async (params: FiatPluginFactoryArgs) => {
+  const pluginId = 'creditcard'
   const { showUi, account } = params
 
   const assetPromises = []
   const providerPromises = []
   for (const providerFactory of providerFactories) {
-    providerPromises.push(providerFactory())
+    const store = createStore(account.dataStore, providerFactory.pluginId)
+    providerPromises.push(providerFactory.makeProvider({ io: { store } }))
   }
   const providers = await Promise.all(providerPromises)
   for (const provider of providers) {
     assetPromises.push(promiseWithTimeout(safePromise(provider.getSupportedAssets())))
   }
+  // const store = createStore(account.dataStore, pluginId)
 
   const fiatPlugin: FiatPlugin = {
-    pluginId: 'creditcard',
+    pluginId,
     startPlugin: async () => {
       const assetArray = await Promise.all(assetPromises)
 
-      const allowedCurrencyCodes: EdgeTokenIdExtended[] = []
+      const allowedAssets: EdgeTokenId[] = []
       for (const assetMap of assetArray) {
         if (assetMap == null) continue
         for (const currencyPluginId in assetMap) {
           const currencyCodeMap = assetMap[currencyPluginId]
           for (const currencyCode in currencyCodeMap) {
             if (currencyCodeMap[currencyCode]) {
-              allowedCurrencyCodes.push({ pluginId: currencyPluginId, currencyCode })
+              allowedAssets.push({ pluginId: currencyPluginId, currencyCode })
             }
           }
         }
       }
 
       // Pop up modal to pick wallet/asset
-      const walletListResult = await showUi.walletPicker({ headerTitle: 'Select Asset to Purchase', allowedCurrencyCodes, showCreateWallet: true })
+      const walletListResult = await showUi.walletPicker({ headerTitle: 'Select Asset to Purchase', allowedAssets, showCreateWallet: true })
       const { walletId, currencyCode } = walletListResult
       if (walletId == null) return
 

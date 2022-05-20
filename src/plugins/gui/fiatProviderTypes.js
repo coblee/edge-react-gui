@@ -39,13 +39,13 @@ export type FiatProvider = {
   getQuote: (params: FiatProviderGetQuoteParams) => Promise<FiatProviderQuote>
 }
 
-export type FiatProviderFactoryArgs = {
-  // TODO:
-  // io: {
-  //   log: EdgeLog, // scoped logs
-  //   cacheStorage: Disklet, // Local cache, not synced
-  //   syncedStorage: ScopedStorage
-  // }
+export type FiatProviderFactoryParams = {
+  io: {
+    store: Object
+  }
 }
 
-export type FiatProviderFactory = () => Promise<FiatProvider>
+export type FiatProviderFactory = {
+  pluginId: string,
+  makeProvider: (params: FiatProviderFactoryParams) => Promise<FiatProvider>
+}

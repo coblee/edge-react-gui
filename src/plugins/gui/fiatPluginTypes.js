@@ -1,7 +1,12 @@
 // @flow
 import { type EdgeAccount } from 'edge-core-js'
 
-import { type EdgeTokenIdExtended } from '../../types/types.js'
+import { type EdgeTokenId } from '../../types/types.js'
+
+export type FiatPluginStore = {
+  writeData: (data: { [key: string]: string }) => Promise<{ [key: string]: string }>,
+  readData: (keys: string[]) => Promise<{ [key: string]: string }>
+}
 
 export type FiatPluginAmountEntryParams = {
   headerTitle: string,
@@ -17,7 +22,7 @@ export type FiatPluginEnterAmountResponse = { lastUsed: number, value1: string, 
 export type FiatPluginOpenWebViewParams = { url: string }
 export type FiatPluginUi = {
   openWebView: FiatPluginOpenWebViewParams => Promise<void>,
-  walletPicker: (params: { headerTitle: string, allowedCurrencyCodes?: EdgeTokenIdExtended[], showCreateWallet?: boolean }) => Promise<{
+  walletPicker: (params: { headerTitle: string, allowedAssets?: EdgeTokenId[], showCreateWallet?: boolean }) => Promise<{
     walletId: string,
     currencyCode: string
   }>,
