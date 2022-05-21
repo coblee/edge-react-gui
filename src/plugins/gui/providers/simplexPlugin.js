@@ -13,14 +13,7 @@ import {
 } from '../fiatProviderTypes'
 const pluginId = 'simplex'
 
-const allowedCurrencyCodes: FiatProviderAssetMap = {
-  bitcoin: { BTC: true },
-  ethereum: { ETH: true },
-  bitcoincash: { BCH: true },
-  ripple: { XRP: true }
-}
-
-export const SIMPLEX_ID_MAP = {
+export const SIMPLEX_ID_MAP: { [pluginId: string]: { [currencyCode: string]: string } } = {
   avalanche: { AVAX: 'AVAX-C' },
   binance: { AVA: 'AVA', BNB: 'BNB' },
   binancesmartchain: {
@@ -119,6 +112,16 @@ export const SIMPLEX_ID_MAP = {
   wax: { WAX: 'WAXP' }
 }
 
+const allowedCurrencyCodes: FiatProviderAssetMap = {}
+
+for (const pluginId in SIMPLEX_ID_MAP) {
+  const codesObject = SIMPLEX_ID_MAP[pluginId]
+  for (const currencyCode in codesObject) {
+    if (allowedCurrencyCodes[pluginId] == null) allowedCurrencyCodes[pluginId] = {}
+    allowedCurrencyCodes[pluginId][currencyCode] = true
+  }
+}
+
 const getUserId = async (store): Promise<string> => {
   const result = await store.readData(['simplex_user_id'])
   let id = result.simplex_user_id ?? null
@@ -137,35 +140,29 @@ export const simplexProvider: FiatProviderFactory = {
       pluginId,
       getSupportedAssets: async (): Promise<FiatProviderAssetMap> => allowedCurrencyCodes,
       getQuote: async (params: FiatProviderGetQuoteParams): Promise<FiatProviderQuote> => {
-        await snooze(Math.random() * 3000)
-        const { tokenId, fiatCurrencyCode, exchangeAmount, amountType, direction } = params
-
-        const { currencyCode } = tokenId
-        const currencyPluginId = tokenId.pluginId
-        const exchangeRate = { bitcoin: '43123', ethereum: '2212' }
-        const fee = '0.025'
-
-        if (currencyCode == null) throw new Error('simplexProvider: Missing tokenId.currencyCode')
-
-        let isEstimate = false
-        let fiatAmount = '0'
-        let cryptoAmount = '0'
-        if (direction === 'buy') {
-          isEstimate = true
-          if (amountType === 'crypto') {
-            cryptoAmount = exchangeAmount
-            const feeMultiplier = add('1', fee)
-            fiatAmount = mul(exchangeRate[currencyPluginId], exchangeAmount)
-            fiatAmount = mul(fiatAmount, feeMultiplier)
-          } else {
-            fiatAmount = exchangeAmount
-            const feeMultiplier = sub('1', fee)
-            cryptoAmount = div(exchangeAmount, exchangeRate[currencyPluginId], 16)
-            cryptoAmount = mul(cryptoAmount, feeMultiplier)
-          }
-        } else {
-          throw new Error('simplexProvider: Sell unsupported')
-        }
+        // export async function requestQuote (requested, amount, digitalCurrency, fiatCurrency) {
+        // const userId = await getUserId()
+        // // Abort any active requests
+        // requestAbort()
+        // const data = {
+        //   // signal: abortController.signal,
+        //   method: 'POST',
+        //   headers: {
+        //     Accept: 'application/json',
+        //     'Content-Type': 'application/json'
+        //   },
+        //   body: JSON.stringify({
+        //     digital_currency: digitalCurrency,
+        //     fiat_currency: fiatCurrency,
+        //     requested_currency: requested,
+        //     requested_amount: parseFloat(amount),
+        //     client_id: userId
+        //   })
+        // }
+        // // Issue a new request
+        // lastRequest = cancelableFetch(edgeLegacyBuyUrl + '/quote', data)
+        // return lastRequest.promise
+        // }
 
         const paymentQuote: FiatProviderQuote = {
           tokenId,

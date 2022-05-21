@@ -1,5 +1,5 @@
 // @flow
-import { type EdgeTokenIdExtended } from '../../types/types.js'
+import { type EdgeTokenId } from '../../types/types.js'
 import { type FiatPluginUi } from './fiatPluginTypes.js'
 
 export type FiatProviderApproveQuoteParams = {
@@ -7,7 +7,7 @@ export type FiatProviderApproveQuoteParams = {
 }
 
 export type FiatProviderQuote = {
-  +tokenId: EdgeTokenIdExtended,
+  +tokenId: EdgeTokenId,
   +cryptoAmount: string,
   +isEstimate: boolean,
   +fiatCurrencyCode: string,
@@ -26,7 +26,7 @@ export type FiatProviderAssetMap = {
 }
 
 export type FiatProviderGetQuoteParams = {
-  tokenId: EdgeTokenIdExtended,
+  tokenId: EdgeTokenId,
   exchangeAmount: string,
   fiatCurrencyCode: string,
   amountType: 'fiat' | 'crypto',
