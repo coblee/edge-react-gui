@@ -9,8 +9,10 @@ import { getSymbolFromCurrency } from '../../constants/WalletAndCurrencyConstant
 import { displayFiatAmount } from '../../hooks/useFiatText.js'
 import { formatNumber } from '../../locales/intl.js'
 import s from '../../locales/strings'
+import { type RootState } from '../../reducers/RootReducer.js'
 import { getDisplayDenomination, getExchangeDenomination } from '../../selectors/DenominationSelectors.js'
-import { connect } from '../../types/reactRedux.js'
+import { memo, useCallback } from '../../types/reactHooks.js'
+import { useSelector } from '../../types/reactRedux.js'
 import { Actions } from '../../types/routerTypes.js'
 import type { TransactionListTx } from '../../types/types.js'
 import {
@@ -39,7 +41,7 @@ type StateProps = {
   walletBlockHeight: number
 }
 
-type OwnProps = {
+type Props = {
   // eslint-disable-next-line react/no-unused-prop-types
   walletId: string,
   // eslint-disable-next-line react/no-unused-prop-types
@@ -47,11 +49,13 @@ type OwnProps = {
   transaction: TransactionListTx
 }
 
-type Props = OwnProps & StateProps
+export const TransactionListRow = memo((props: Props) => {
+  const { transaction } = props
+  const state = useSelector(state => state)
+  const values = calcValues(state, props)
+  const { thumbnailPath } = values
 
-export class TransactionListRowComponent extends React.PureComponent<Props> {
-  handlePress = () => {
-    const { transaction, thumbnailPath } = this.props
+  const handlePress = useCallback(() => {
     if (transaction == null) {
       return showError(s.strings.transaction_details_error_invalid)
     }
@@ -59,83 +63,78 @@ export class TransactionListRowComponent extends React.PureComponent<Props> {
       edgeTransaction: transaction,
       thumbnailPath
     })
+  }, [transaction, thumbnailPath])
+
+  return (
+    <TransactionRow
+      cryptoAmount={values.cryptoAmount}
+      denominationSymbol={values.denominationSymbol}
+      fiatAmount={values.fiatAmount}
+      fiatSymbol={values.fiatSymbol}
+      onPress={handlePress}
+      isSentTransaction={values.isSentTransaction}
+      requiredConfirmations={values.requiredConfirmations}
+      selectedCurrencyName={values.selectedCurrencyName}
+      thumbnailPath={values.thumbnailPath}
+      transaction={transaction}
+      walletBlockHeight={values.walletBlockHeight}
+    />
+  )
+})
+
+export const calcValues = (state: RootState, props: Props): StateProps => {
+  const { currencyCode, walletId, transaction } = props
+  const { metadata } = transaction
+  const { name, amountFiat } = metadata ?? {}
+  const guiWallet = state.ui.wallets.byId[walletId]
+  const { fiatCurrencyCode } = guiWallet
+  const { currencyWallets } = state.core.account
+  const coreWallet: EdgeCurrencyWallet = currencyWallets[walletId]
+  const currencyInfo: EdgeCurrencyInfo = coreWallet.currencyInfo
+  const displayDenomination = getDisplayDenomination(state, currencyInfo.pluginId, currencyCode)
+  const exchangeDenomination = getExchangeDenomination(state, currencyInfo.pluginId, currencyCode)
+  const fiatDenomination = getDenomFromIsoCode(guiWallet.fiatCurrencyCode)
+
+  // Required Confirmations
+  const requiredConfirmations = currencyInfo.requiredConfirmations || 1 // set default requiredConfirmations to 1, so once the transaction is in a block consider fully confirmed
+
+  // Thumbnail
+  let thumbnailPath
+  const contacts = state.contacts || []
+  const transactionContactName = name != null ? normalizeForSearch(name) : null
+  for (const contact of contacts) {
+    const { givenName, familyName } = contact
+    const fullName = normalizeForSearch(`${givenName}${familyName ?? ''}`)
+    if (contact.thumbnailPath && fullName === transactionContactName) {
+      thumbnailPath = contact.thumbnailPath
+      break
+    }
   }
 
-  render() {
-    return (
-      <TransactionRow
-        cryptoAmount={this.props.cryptoAmount}
-        denominationSymbol={this.props.denominationSymbol}
-        fiatAmount={this.props.fiatAmount}
-        fiatSymbol={this.props.fiatSymbol}
-        onPress={this.handlePress}
-        isSentTransaction={this.props.isSentTransaction}
-        requiredConfirmations={this.props.requiredConfirmations}
-        selectedCurrencyName={this.props.selectedCurrencyName}
-        thumbnailPath={this.props.thumbnailPath}
-        transaction={this.props.transaction}
-        walletBlockHeight={this.props.walletBlockHeight}
-      />
-    )
+  // CryptoAmount
+  const rateKey = `${currencyCode}_${guiWallet.isoFiatCurrencyCode}`
+  const exchangeRate = state.exchangeRates[rateKey] ? state.exchangeRates[rateKey] : undefined
+  let maxConversionDecimals = DEFAULT_TRUNCATE_PRECISION
+  if (exchangeRate) {
+    const precisionAdjustValue = precisionAdjust({
+      primaryExchangeMultiplier: exchangeDenomination.multiplier,
+      secondaryExchangeMultiplier: fiatDenomination.multiplier,
+      exchangeSecondaryToPrimaryRatio: exchangeRate
+    })
+    maxConversionDecimals = maxPrimaryCurrencyConversionDecimals(log10(displayDenomination.multiplier), precisionAdjustValue)
+  }
+  const cryptoAmount = div(abs(transaction.nativeAmount ?? '0'), displayDenomination.multiplier, DECIMAL_PRECISION)
+  const cryptoAmountFormat = formatNumber(decimalOrZero(truncateDecimals(cryptoAmount, maxConversionDecimals), maxConversionDecimals))
+
+  return {
+    isSentTransaction: isSentTransaction(transaction),
+    cryptoAmount: cryptoAmountFormat,
+    fiatAmount: displayFiatAmount(amountFiat),
+    fiatSymbol: getSymbolFromCurrency(fiatCurrencyCode),
+    walletBlockHeight: guiWallet.blockHeight || 0,
+    denominationSymbol: displayDenomination.symbol,
+    requiredConfirmations,
+    selectedCurrencyName: guiWallet.currencyNames[currencyCode] || currencyCode,
+    thumbnailPath
   }
 }
-
-export const TransactionListRow = connect<StateProps, {}, OwnProps>(
-  (state, ownProps) => {
-    const { currencyCode, walletId, transaction } = ownProps
-    const { metadata } = transaction
-    const { name, amountFiat } = metadata ?? {}
-    const guiWallet = state.ui.wallets.byId[walletId]
-    const { fiatCurrencyCode } = guiWallet
-    const { currencyWallets } = state.core.account
-    const coreWallet: EdgeCurrencyWallet = currencyWallets[walletId]
-    const currencyInfo: EdgeCurrencyInfo = coreWallet.currencyInfo
-    const displayDenomination = getDisplayDenomination(state, currencyInfo.pluginId, currencyCode)
-    const exchangeDenomination = getExchangeDenomination(state, currencyInfo.pluginId, currencyCode)
-    const fiatDenomination = getDenomFromIsoCode(guiWallet.fiatCurrencyCode)
-
-    // Required Confirmations
-    const requiredConfirmations = currencyInfo.requiredConfirmations || 1 // set default requiredConfirmations to 1, so once the transaction is in a block consider fully confirmed
-
-    // Thumbnail
-    let thumbnailPath
-    const contacts = state.contacts || []
-    const transactionContactName = name != null ? normalizeForSearch(name) : null
-    for (const contact of contacts) {
-      const { givenName, familyName } = contact
-      const fullName = normalizeForSearch(`${givenName}${familyName ?? ''}`)
-      if (contact.thumbnailPath && fullName === transactionContactName) {
-        thumbnailPath = contact.thumbnailPath
-        break
-      }
-    }
-
-    // CryptoAmount
-    const rateKey = `${currencyCode}_${guiWallet.isoFiatCurrencyCode}`
-    const exchangeRate = state.exchangeRates[rateKey] ? state.exchangeRates[rateKey] : undefined
-    let maxConversionDecimals = DEFAULT_TRUNCATE_PRECISION
-    if (exchangeRate) {
-      const precisionAdjustValue = precisionAdjust({
-        primaryExchangeMultiplier: exchangeDenomination.multiplier,
-        secondaryExchangeMultiplier: fiatDenomination.multiplier,
-        exchangeSecondaryToPrimaryRatio: exchangeRate
-      })
-      maxConversionDecimals = maxPrimaryCurrencyConversionDecimals(log10(displayDenomination.multiplier), precisionAdjustValue)
-    }
-    const cryptoAmount = div(abs(transaction.nativeAmount ?? '0'), displayDenomination.multiplier, DECIMAL_PRECISION)
-    const cryptoAmountFormat = formatNumber(decimalOrZero(truncateDecimals(cryptoAmount, maxConversionDecimals), maxConversionDecimals))
-
-    return {
-      isSentTransaction: isSentTransaction(transaction),
-      cryptoAmount: cryptoAmountFormat,
-      fiatAmount: displayFiatAmount(amountFiat),
-      fiatSymbol: getSymbolFromCurrency(fiatCurrencyCode),
-      walletBlockHeight: guiWallet.blockHeight || 0,
-      denominationSymbol: displayDenomination.symbol,
-      requiredConfirmations,
-      selectedCurrencyName: guiWallet.currencyNames[currencyCode] || currencyCode,
-      thumbnailPath
-    }
-  },
-  dispatch => ({})
-)(TransactionListRowComponent)
