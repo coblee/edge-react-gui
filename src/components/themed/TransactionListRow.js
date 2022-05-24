@@ -11,7 +11,7 @@ import { formatNumber } from '../../locales/intl.js'
 import s from '../../locales/strings'
 import { type RootState } from '../../reducers/RootReducer.js'
 import { getDisplayDenomination, getExchangeDenomination } from '../../selectors/DenominationSelectors.js'
-import { memo, useCallback } from '../../types/reactHooks.js'
+import { memo, useCallback, useMemo } from '../../types/reactHooks.js'
 import { useSelector } from '../../types/reactRedux.js'
 import { Actions } from '../../types/routerTypes.js'
 import type { TransactionListTx } from '../../types/types.js'
@@ -36,7 +36,6 @@ type StateProps = {
   fiatSymbol: string,
   isSentTransaction: boolean,
   requiredConfirmations: number,
-  selectedCurrencyName: string,
   thumbnailPath?: string,
   walletBlockHeight: number
 }
@@ -50,10 +49,29 @@ type Props = {
 }
 
 export const TransactionListRow = memo((props: Props) => {
-  const { transaction } = props
+  const { transaction, walletId, currencyCode } = props
   const state = useSelector(state => state)
+
+  // coreWallet will not get updated if account or currencyWallet change, but it should be
+  // static for the life of this TransactionListRow
+  const coreWallet = useSelector(state => state.core.account.currencyWallets[walletId])
   const values = calcValues(state, props)
   const { thumbnailPath } = values
+  const { allTokens } = coreWallet.currencyConfig
+
+  const selectedCurrencyName = useMemo(() => {
+    let displayName = coreWallet.currencyInfo.currencyCode === currencyCode ? coreWallet.currencyInfo.displayName : undefined
+    if (displayName == null) {
+      for (const tokenId in allTokens) {
+        const edgeToken = allTokens[tokenId]
+        if (edgeToken.currencyCode === currencyCode) {
+          displayName = edgeToken.displayName
+          break
+        }
+      }
+    }
+    return displayName ?? currencyCode
+  }, [allTokens, coreWallet, currencyCode])
 
   const handlePress = useCallback(() => {
     if (transaction == null) {
@@ -74,7 +92,7 @@ export const TransactionListRow = memo((props: Props) => {
       onPress={handlePress}
       isSentTransaction={values.isSentTransaction}
       requiredConfirmations={values.requiredConfirmations}
-      selectedCurrencyName={values.selectedCurrencyName}
+      selectedCurrencyName={selectedCurrencyName}
       thumbnailPath={values.thumbnailPath}
       transaction={transaction}
       walletBlockHeight={values.walletBlockHeight}
@@ -86,14 +104,13 @@ export const calcValues = (state: RootState, props: Props): StateProps => {
   const { currencyCode, walletId, transaction } = props
   const { metadata } = transaction
   const { name, amountFiat } = metadata ?? {}
-  const guiWallet = state.ui.wallets.byId[walletId]
-  const { fiatCurrencyCode } = guiWallet
   const { currencyWallets } = state.core.account
   const coreWallet: EdgeCurrencyWallet = currencyWallets[walletId]
   const currencyInfo: EdgeCurrencyInfo = coreWallet.currencyInfo
+  const fiatCurrencyCode = coreWallet.fiatCurrencyCode.replace('iso:', '')
   const displayDenomination = getDisplayDenomination(state, currencyInfo.pluginId, currencyCode)
   const exchangeDenomination = getExchangeDenomination(state, currencyInfo.pluginId, currencyCode)
-  const fiatDenomination = getDenomFromIsoCode(guiWallet.fiatCurrencyCode)
+  const fiatDenomination = getDenomFromIsoCode(fiatCurrencyCode)
 
   // Required Confirmations
   const requiredConfirmations = currencyInfo.requiredConfirmations || 1 // set default requiredConfirmations to 1, so once the transaction is in a block consider fully confirmed
@@ -112,7 +129,7 @@ export const calcValues = (state: RootState, props: Props): StateProps => {
   }
 
   // CryptoAmount
-  const rateKey = `${currencyCode}_${guiWallet.isoFiatCurrencyCode}`
+  const rateKey = `${currencyCode}_${coreWallet.fiatCurrencyCode}`
   const exchangeRate = state.exchangeRates[rateKey] ? state.exchangeRates[rateKey] : undefined
   let maxConversionDecimals = DEFAULT_TRUNCATE_PRECISION
   if (exchangeRate) {
@@ -131,10 +148,9 @@ export const calcValues = (state: RootState, props: Props): StateProps => {
     cryptoAmount: cryptoAmountFormat,
     fiatAmount: displayFiatAmount(amountFiat),
     fiatSymbol: getSymbolFromCurrency(fiatCurrencyCode),
-    walletBlockHeight: guiWallet.blockHeight || 0,
+    walletBlockHeight: coreWallet.blockHeight ?? 0,
     denominationSymbol: displayDenomination.symbol,
     requiredConfirmations,
-    selectedCurrencyName: guiWallet.currencyNames[currencyCode] || currencyCode,
     thumbnailPath
   }
 }
