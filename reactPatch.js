@@ -38,5 +38,23 @@ require('./reactPatcher/index').Cavify(React, {
 
   functionalHOC: wrap,
   classHOC: hook,
-  include: ['SideMenuButton', 'ModalCloseArrow', 'MenuTabComponent']
+  include: [
+    'SideMenuButton',
+    'ModalCloseArrow',
+    'MenuTabComponent',
+    'ContactListModal',
+    'AddressModalComponent',
+    'AccelerateTxModelComponent',
+    'FlipInputModalComponent',
+    'ListModal',
+    'PasswordReminderModalComponent',
+    'TransactionAdvanceDetailsComponent',
+    'TransactionDetailsCategoryInput',
+    'WalletListSortModalComponent',
+    'MainButton',
+    'QrCode',
+    'SelectableRowComponent',
+    'ThemedModalComponent',
+    'HelpModalComponent'
+  ]
 })
