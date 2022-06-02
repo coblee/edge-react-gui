@@ -39,23 +39,20 @@ type Props = {
   bridge: AirshipBridge<void>
 }
 
-class HelpWebViewModal extends React.Component<Props & { uri: string, title: string }> {
-  webview: WebView | void
-  handleClose = () => this.props.bridge.resolve()
+export const HelpWebViewModal = (props: Props & { uri: string, title: string }) => {
+  const handleClose = () => props.bridge.resolve()
+  const { bridge, uri, title } = props
 
-  render() {
-    const { bridge, uri, title } = this.props
-    return (
-      <ThemedModal bridge={bridge} onCancel={this.handleClose} paddingRem={[1, 0]}>
-        <ModalTitle center paddingRem={[0, 1, 1]}>
-          {title}
-        </ModalTitle>
-        <WebView ref={element => (this.webview = element)} source={{ uri }} />
+  return (
+    <ThemedModal bridge={bridge} onCancel={handleClose} paddingRem={[1, 0]}>
+      <ModalTitle center paddingRem={[0, 1, 1]}>
+        {title}
+      </ModalTitle>
+      <WebView source={{ uri }} />
 
-        <ModalCloseArrow onPress={this.handleClose} />
-      </ThemedModal>
-    )
-  }
+      <ModalCloseArrow onPress={handleClose} />
+    </ThemedModal>
+  )
 }
 
 export class HelpModalComponent extends React.Component<Props & ThemeProps> {
