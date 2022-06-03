@@ -7,13 +7,11 @@ import { sprintf } from 'sprintf-js'
 import s from '../../../locales/strings.js'
 import { type StakePolicy } from '../../../plugins/stake-plugins'
 import { type RootState } from '../../../reducers/RootReducer'
-import { useEffect, useState } from '../../../types/reactHooks.js'
 import { useSelector } from '../../../types/reactRedux'
 import type { RouteProp } from '../../../types/routerTypes'
 import { type NavigationProp } from '../../../types/routerTypes.js'
-import { getPolicyAssetName, getPolicyIconUris, getPolicyTitleName, stakePlugin } from '../../../util/stakeUtils.js'
+import { getPolicyAssetName, getPolicyIconUris, getPolicyTitleName } from '../../../util/stakeUtils.js'
 import { StakingOptionCard } from '../../cards/StakingOptionCard.js'
-import { FillLoader } from '../../common/FillLoader.js'
 import { SceneWrapper } from '../../common/SceneWrapper.js'
 import { cacheStyles, useTheme } from '../../services/ThemeContext.js'
 import { CurrencyIcon } from '../../themed/CurrencyIcon.js'
@@ -26,7 +24,7 @@ type Props = {
 }
 
 export const StakeOptionsScene = (props: Props) => {
-  const { walletId, currencyCode } = props.route.params
+  const { walletId, currencyCode, stakePolicies } = props.route.params
   const { navigation } = props
   const theme = useTheme()
   const styles = getStyles(theme)
@@ -36,31 +34,16 @@ export const StakeOptionsScene = (props: Props) => {
   // Stake Policies
   //
 
-  const [stakePolicies, setStakePolicies] = useState<StakePolicy[]>([])
-  useEffect(() => {
-    let abort = false
-
-    stakePlugin
-      .getStakePolicies()
-      .then(stakePolicies => {
-        if (abort) return
-        const availableStakePolicies = stakePolicies.filter(stakePolicy => {
-          return (
-            stakePolicy.stakeAssets.some(stakeAsset => stakeAsset.currencyCode === currencyCode) ||
-            stakePolicy.rewardAssets.some(rewardAssets => rewardAssets.currencyCode === currencyCode)
-          )
-        })
-        if (availableStakePolicies.length === 1) {
-          // Transition to next scene immediately
-          navigation.replace('stakeOverview', { walletId, stakePolicy: availableStakePolicies[0] })
-        } else setStakePolicies(availableStakePolicies)
-      })
-      .catch(err => console.error(err))
-
-    return () => {
-      abort = true
-    }
-  }, [currencyCode, navigation, walletId])
+  const availableStakePolicies = stakePolicies.filter(stakePolicy => {
+    return (
+      stakePolicy.stakeAssets.some(stakeAsset => stakeAsset.currencyCode === currencyCode) ||
+      stakePolicy.rewardAssets.some(rewardAssets => rewardAssets.currencyCode === currencyCode)
+    )
+  })
+  if (availableStakePolicies.length === 1) {
+    // Transition to next scene immediately
+    navigation.replace('stakeOverview', { walletId, stakePolicy: availableStakePolicies[0] })
+  }
 
   const wallet = useSelector((state: RootState) => {
     const { currencyWallets } = state.core.account
@@ -98,13 +81,6 @@ export const StakeOptionsScene = (props: Props) => {
     )
   }
 
-  if (stakePolicies.length === 0)
-    return (
-      <SceneWrapper background="theme">
-        <FillLoader />
-      </SceneWrapper>
-    )
-
   return (
     <SceneWrapper scroll background="theme">
       <SceneHeader style={styles.sceneHeader} title={sprintf(s.strings.staking_change_add_header, currencyCode)} underline withTopMargin>
@@ -112,7 +88,7 @@ export const StakeOptionsScene = (props: Props) => {
       </SceneHeader>
       <View style={styles.optionsContainer}>
         <EdgeText>{s.strings.stake_select_options}</EdgeText>
-        <FlatList data={stakePolicies} renderItem={renderOptions} keyExtractor={(stakePolicy: StakePolicy) => stakePolicy.stakePolicyId} />
+        <FlatList data={availableStakePolicies} renderItem={renderOptions} keyExtractor={(stakePolicy: StakePolicy) => stakePolicy.stakePolicyId} />
       </View>
     </SceneWrapper>
   )
