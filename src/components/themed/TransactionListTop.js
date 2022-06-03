@@ -2,7 +2,7 @@
 
 import { add, gt } from 'biggystring'
 import * as React from 'react'
-import { TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { sprintf } from 'sprintf-js'
@@ -61,7 +61,7 @@ type DispatchProps = {
 
 type State = {
   input: string,
-  stakePolicies: StakePolicy[]
+  stakePolicies: StakePolicy[] | void
 }
 
 type Props = OwnProps & StateProps & DispatchProps & ThemeProps
@@ -73,7 +73,7 @@ export class TransactionListTopComponent extends React.PureComponent<Props, Stat
     super(props)
     this.state = {
       input: '',
-      stakePolicies: []
+      stakePolicies: undefined
     }
   }
 
@@ -131,33 +131,44 @@ export class TransactionListTopComponent extends React.PureComponent<Props, Stat
     )
   }
 
+  /**
+   * If the parent chain supports staking, query the info server if staking is
+   * supported for this specific asset. While waiting for the query, show a
+   * spinner.
+   */
   renderStakingBox() {
     const { theme, currencyCode, stakingBalances, fiatSymbol, fiatCurrencyCode, pluginId } = this.props
     const { stakePolicies } = this.state
     const styles = getStyles(theme)
 
-    const isStakingPolicyAvailable = stakePolicies.some(stakePolicy => {
-      return [...stakePolicy.rewardAssets, ...stakePolicy.stakeAssets].some(asset => asset.pluginId === pluginId && asset.currencyCode === currencyCode)
-    })
+    const isStakingPolicyAvailable =
+      stakePolicies != null &&
+      stakePolicies.some(stakePolicy => {
+        return [...stakePolicy.rewardAssets, ...stakePolicy.stakeAssets].some(asset => asset.pluginId === pluginId && asset.currencyCode === currencyCode)
+      })
     // Special case for FIO because it uses it's own staking plugin
     const isStakingSupported = SPECIAL_CURRENCY_INFO[pluginId]?.isStakingSupported && (isStakingPolicyAvailable || currencyCode === 'FIO')
-    if (!isStakingSupported) return null
+    if (!isStakingSupported && stakePolicies !== undefined) return null
 
-    const lockedBalance = stakingBalances[`${currencyCode}${STAKING_BALANCES.locked}`]
+    const lockedBalance = stakingBalances != null ? stakingBalances[`${currencyCode}${STAKING_BALANCES.locked}`] : null
 
     return (
       <View>
         <View style={styles.stakingBoxContainer}>
           <EdgeText style={styles.stakingStatusText}>
-            {lockedBalance.crypto != null && lockedBalance.crypto !== '0'
+            {lockedBalance != null && lockedBalance.crypto != null && lockedBalance.crypto !== '0'
               ? sprintf(s.strings.staking_status, lockedBalance.crypto + ' ' + currencyCode, fiatSymbol + lockedBalance.fiat + ' ' + fiatCurrencyCode)
               : null}
           </EdgeText>
 
-          <TouchableOpacity onPress={this.handleStakePress} style={styles.stakingButton}>
-            <EdgeText style={styles.stakingButtonText}>{s.strings.fragment_stake_label}</EdgeText>
-            <MaterialCommunityIcons name="chart-line" size={theme.rem(1)} color={theme.iconTappable} />
-          </TouchableOpacity>
+          {stakePolicies === undefined ? (
+            <ActivityIndicator color={theme.textLink} style={styles.stakingButton} />
+          ) : (
+            <TouchableOpacity onPress={this.handleStakePress} style={styles.stakingButton}>
+              <EdgeText style={styles.stakingButtonText}>{s.strings.fragment_stake_label}</EdgeText>
+              <MaterialCommunityIcons name="chart-line" size={theme.rem(1)} color={theme.iconTappable} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     )
@@ -193,7 +204,7 @@ export class TransactionListTopComponent extends React.PureComponent<Props, Stat
   handleStakePress = () => {
     const { currencyCode, walletId } = this.props
     if (currencyCode === 'FIO') Actions.push(FIO_STAKING_OVERVIEW, { currencyCode, walletId })
-    else Actions.push(STAKE_OPTIONS, { walletId, currencyCode, stakePolicies: this.state.stakePolicies })
+    else Actions.push(STAKE_OPTIONS, { walletId, currencyCode, stakePolicies: this.state.stakePolicies ?? [] })
   }
 
   clearText = () => {

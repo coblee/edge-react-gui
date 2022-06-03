@@ -132,6 +132,38 @@ exports[`TransactionListTop should render with loading props 1`] = `
           </View>
         </View>
       </View>
+      <View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+            }
+          }
+        >
+          <WithTheme(EdgeTextComponent)
+            style={
+              Object {
+                "color": "#A4C7DF",
+                "fontSize": 22,
+                "maxWidth": "70%",
+              }
+            }
+          />
+          <ActivityIndicator
+            color="#66EDA8"
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "center",
+                "paddingRight": 22,
+              }
+            }
+          />
+        </View>
+      </View>
       <View
         style={
           Object {
