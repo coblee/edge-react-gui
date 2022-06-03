@@ -161,6 +161,16 @@ export type ParamList = {
   fioSentRequestDetails: {|
     selectedFioSentRequest: FioRequest
   |},
+  fioStakingChange: {
+    change: 'add' | 'remove',
+    currencyCode: string,
+    walletId: string
+  },
+  fioStakingOverview: {
+    currencyCode: string,
+    walletId: string
+  },
+  ioniaSell: void,
   manageTokens: {|
     walletId: string
   |},
@@ -170,9 +180,17 @@ export type ParamList = {
   |},
   otpSetup: void,
   passwordRecovery: void,
-  pluginBuy: {| direction: 'buy' |},
-  pluginSell: {| direction: 'sell' |},
-  pluginView: {|
+  pluginListBuy: {| direction: 'buy' |},
+  pluginListSell: {| direction: 'sell' |},
+  pluginViewBuy: {|
+    // The GUI plugin we are showing the user:
+    plugin: GuiPlugin,
+
+    // Set these to add stuff to the plugin URI:
+    deepPath?: string,
+    deepQuery?: UriQueryMap
+  |},
+  pluginViewSell: {|
     // The GUI plugin we are showing the user:
     plugin: GuiPlugin,
 
@@ -216,15 +234,6 @@ export type ParamList = {
   stakeClaim: { walletId: string, stakePolicy: StakePolicy },
   stakeOptions: { walletId: string, currencyCode: string },
   stakeOverview: { walletId: string, stakePolicy: StakePolicy },
-  fioStakingChange: {
-    change: 'add' | 'remove',
-    currencyCode: string,
-    walletId: string
-  },
-  fioStakingOverview: {
-    currencyCode: string,
-    walletId: string
-  },
   termsOfService: void,
   transactionDetails: {|
     edgeTransaction: EdgeTransaction,

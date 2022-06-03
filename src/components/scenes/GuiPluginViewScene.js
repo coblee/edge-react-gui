@@ -114,7 +114,7 @@ function makeOuterWebViewBridge<Root>(onRoot: (root: Root) => mixed, debug: bool
 // Plugin scene --------------------------------------------------------
 
 type OwnProps = {
-  route: RouteProp<'pluginView'>
+  route: RouteProp<'pluginViewBuy'> | RouteProp<'pluginViewSell'>
 }
 
 type DispatchProps = { dispatch: Dispatch }
