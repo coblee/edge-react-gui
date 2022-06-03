@@ -207,6 +207,9 @@ exports[`MenuTab should render with loading props 1`] = `
       "paymentTypeLogoInterac": Object {
         "testUri": "../../../src/assets/images/paymentTypes/paymentTypeLogoInterac.png",
       },
+      "paymentTypeLogoIonia": Object {
+        "testUri": "../../../src/assets/images/paymentTypes/paymentTypeLogoIonia.png",
+      },
       "paymentTypeLogoNewsagent": Object {
         "testUri": "../../../src/assets/images/paymentTypes/paymentTypeLogoNewsagent.png",
       },
