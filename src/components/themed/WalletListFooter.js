@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { TouchableOpacity, View } from 'react-native'
 import Ionicon from 'react-native-vector-icons/Ionicons'
-
 import { SPECIAL_CURRENCY_INFO } from '../../constants/WalletAndCurrencyConstants.js'
 import { useHandler } from '../../hooks/useHandler.js'
 import s from '../../locales/strings.js'
@@ -12,8 +11,9 @@ import { type NavigationProp } from '../../types/routerTypes.js'
 import { type EdgeTokenId } from '../../types/types.js'
 import { WalletListModal } from '../modals/WalletListModal.js'
 import { Airship, showError } from '../services/AirshipInstance.js'
-import { type Theme, cacheStyles, useTheme } from '../services/ThemeContext.js'
+import { cacheStyles, useTheme, type Theme } from '../services/ThemeContext.js'
 import { EdgeText } from './EdgeText.js'
+
 
 type Props = {
   navigation: NavigationProp<'walletList'>
@@ -26,7 +26,7 @@ export const WalletListFooter = (props: Props) => {
   const account = useSelector(state => state.core.account)
 
   const handleAddWallet = useHandler(() => {
-    navigation.navigate('createWalletSelectCrypto')
+    navigation.navigate('waitScene', { message: "Test 123"})
   })
 
   const handleAddToken = useHandler(() => {

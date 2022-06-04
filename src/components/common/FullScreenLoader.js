@@ -4,6 +4,7 @@ import * as React from 'react'
 import { ActivityIndicator, StyleSheet, View, ViewPropTypes } from 'react-native'
 
 import { THEME } from '../../theme/variables/airbitz.js'
+
 import { PLATFORM } from '../../theme/variables/platform.js'
 
 type Props = {

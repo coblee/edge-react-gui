@@ -3,7 +3,6 @@
 import * as React from 'react'
 import { YellowBox } from 'react-native'
 import { Drawer, Router, Scene, Stack, Tabs } from 'react-native-router-flux'
-
 import ENV from '../../env.json'
 import { checkEnabledExchanges } from '../actions/CryptoExchangeActions.js'
 import { registerDevice } from '../actions/DeviceIdActions.js'
@@ -34,6 +33,7 @@ import { FioSentRequestDetailsScene } from '../components/scenes/FioSentRequestD
 import { PromotionSettingsScene } from '../components/scenes/PromotionSettingsScene.js'
 import { SwapSettingsScene } from '../components/scenes/SwapSettingsScene.js'
 import { TransactionsExportScene } from '../components/scenes/TransactionsExportScene.js'
+import { WaitScene } from '../components/scenes/WaitScene.js'
 import { WalletListScene } from '../components/scenes/WalletListScene.js'
 import { requestPermission } from '../components/services/PermissionsManager.js'
 import { ControlPanel } from '../components/themed/ControlPanel'
@@ -94,11 +94,8 @@ import {
   STAKE_MODIFY,
   STAKE_OPTIONS,
   STAKE_OVERVIEW,
-  TERMS_OF_SERVICE,
-  TRANSACTION_DETAILS,
-  TRANSACTION_LIST,
-  TRANSACTIONS_EXPORT,
-  WALLET_LIST,
+  TERMS_OF_SERVICE, TRANSACTIONS_EXPORT, TRANSACTION_DETAILS,
+  TRANSACTION_LIST, WALLET_LIST,
   WALLET_LIST_SCENE
 } from '../constants/SceneKeys.js'
 import s from '../locales/strings.js'
@@ -156,6 +153,7 @@ import { WcConnectScene } from './scenes/WcConnectScene'
 import { WcDisconnectScene } from './scenes/WcDisconnectScene'
 import { Airship } from './services/AirshipInstance.js'
 import { MenuTab } from './themed/MenuTab.js'
+
 
 const RouterWithRedux = connect<
   {},
@@ -546,6 +544,16 @@ export class MainComponent extends React.Component<Props> {
             <Scene
               key="manageTokens_notused"
               component={withNavigation(ifLoggedIn(ManageTokensScene))}
+              navTransparent
+              renderTitle=""
+              renderLeftButton={<BackButton onPress={this.handleBack} />}
+              renderRightButton={this.renderEmptyButton()}
+            />
+          </Stack>
+          <Stack key="waitScene" hideTabBar>
+            <Scene
+              key="waitScene"
+              component={withNavigation(ifLoggedIn(WaitScene))}
               navTransparent
               renderTitle=""
               renderLeftButton={<BackButton onPress={this.handleBack} />}
