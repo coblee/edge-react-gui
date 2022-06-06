@@ -42,6 +42,7 @@
     "start": "react-native start",
     "start.plugins": "webpack serve",
     "test": "jest --config jest.config.js",
+    "test:mocha": "mocha -r sucrase/register './src/__tests__/**/*.mocha.js'",
     "theme": "node ./themeServer.js",
     "updot": "EDGE_MODE=development updot",
     "watch": "npm test -- --watch"
@@ -170,6 +171,7 @@
     "babel-jest": "^27.4.6",
     "babel-loader": "^8.0.5",
     "body-parser": "^1.18.2",
+    "chai": "^4.3.6",
     "eslint": "^7.14.0",
     "eslint-config-standard-kit": "0.15.1",
     "eslint-plugin-flowtype": "^5.2.0",
@@ -189,6 +191,7 @@
     "jetifier": "^1.6.5",
     "lint-staged": "^10.5.3",
     "metro-config": "0.66.2",
+    "mocha": "^10.0.0",
     "patch-package": "^6.2.2",
     "prettier": "^2.2.0",
     "react-native-svg-transformer": "^1.0.0",
