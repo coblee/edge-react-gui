@@ -4,6 +4,7 @@ import * as React from 'react'
 import { FlatList, RefreshControl } from 'react-native'
 
 import { useHandler } from '../../hooks/useHandler.js'
+import { useRowLayout } from '../../hooks/useRowLayout.js'
 import { useMemo } from '../../types/reactHooks.js'
 import { useSelector } from '../../types/reactRedux.js'
 import { type NavigationProp } from '../../types/routerTypes.js'
@@ -75,7 +76,7 @@ export function WalletListSwipeable(props: Props) {
     return null
   })
 
-  const getItemLayout = useHandler((data, index) => ({ length: theme.rem(4.25), offset: theme.rem(4.25) * index, index }))
+  const handleItemLayout = useRowLayout()
 
   return (
     <FlatList
@@ -86,7 +87,7 @@ export function WalletListSwipeable(props: Props) {
       ListHeaderComponent={header}
       refreshControl={refreshControl}
       renderItem={renderRow}
-      getItemLayout={getItemLayout}
+      getItemLayout={handleItemLayout}
     />
   )
 }

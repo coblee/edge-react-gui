@@ -7,6 +7,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome'
 
 import { PREFERRED_TOKENS, SPECIAL_CURRENCY_INFO } from '../../constants/WalletAndCurrencyConstants.js'
 import { useHandler } from '../../hooks/useHandler.js'
+import { useRowLayout } from '../../hooks/useRowLayout.js'
 import { useWalletName } from '../../hooks/useWalletName.js'
 import { useWatchCurrencyConfig, useWatchWallet } from '../../hooks/useWatch.js'
 import s from '../../locales/strings.js'
@@ -128,7 +129,7 @@ export function ManageTokensScene(props: Props) {
   })
 
   const extraData = useMemo(() => ({ allTokens, enabledTokenSet, customTokens }), [allTokens, enabledTokenSet, customTokens])
-  const getItemLayout = useHandler((data, index) => ({ length: theme.rem(4.25), offset: theme.rem(4.25) * index, index }))
+  const handleItemLayout = useRowLayout()
 
   const sceneHeader = useMemo(
     () => (
@@ -158,7 +159,7 @@ export function ManageTokensScene(props: Props) {
     <SceneWrapper>
       {sceneHeader}
       <FlatList
-        getItemLayout={getItemLayout}
+        getItemLayout={handleItemLayout}
         data={filteredTokenIds}
         extraData={extraData}
         keyExtractor={keyExtractor}
