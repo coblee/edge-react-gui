@@ -104,7 +104,6 @@
     "disklet": "^0.5.2",
     "edge-core-js": "^0.19.18",
     "edge-currency-accountbased": "^0.16.0",
-    "edge-currency-bitcoin": "^4.9.23",
     "edge-currency-monero": "^0.4.1",
     "edge-currency-plugins": "https://github.com/EdgeApp/edge-currency-plugins.git#v0.0.4",
     "edge-exchange-plugins": "^0.13.0",
