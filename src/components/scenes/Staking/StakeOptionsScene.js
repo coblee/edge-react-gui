@@ -30,7 +30,7 @@ export const StakeOptionsScene = (props: Props) => {
   const { navigation } = props
   const theme = useTheme()
   const styles = getStyles(theme)
-  const icon = <CurrencyIcon marginRem={[0, 0.5, 0, 0]} pluginId="fantom" sizeRem={1.5} />
+  const icon = useMemo(() => <CurrencyIcon marginRem={[0, 0.5, 0, 0]} pluginId="fantom" sizeRem={1.5} />, [])
 
   //
   // Stake Policies
