@@ -4,8 +4,8 @@ import { asValue } from 'cleaners'
 import * as React from 'react'
 import { type AirshipBridge } from 'react-native-airship'
 
+import { useHandler } from '../../hooks/useHandler.js'
 import s from '../../locales/strings.js'
-import { useCallback } from '../../types/reactHooks.js'
 import { SettingsRadioRow } from '../themed/SettingsRadioRow.js'
 import { SettingsTappableRow } from '../themed/SettingsTappableRow.js'
 import { ListModal } from './ListModal.js'
@@ -28,16 +28,13 @@ type Props = {
 }
 
 export const WalletListSortModal = ({ bridge, sortOption }: Props) => {
-  const renderRow = useCallback(
-    ([key, title]) => {
-      return key === 'manual' ? (
-        <SettingsTappableRow key={key} label={title} onPress={() => bridge.resolve(key)} />
-      ) : (
-        <SettingsRadioRow key={key} label={title} value={sortOption === key} onPress={() => bridge.resolve(key)} />
-      )
-    },
-    [bridge, sortOption]
-  )
+  const renderRow = useHandler(([key, title]) => {
+    return key === 'manual' ? (
+      <SettingsTappableRow key={key} label={title} onPress={() => bridge.resolve(key)} />
+    ) : (
+      <SettingsRadioRow key={key} label={title} value={sortOption === key} onPress={() => bridge.resolve(key)} />
+    )
+  })
 
   return <ListModal bridge={bridge} title={s.strings.wallet_list_sort_title} textInput={false} rowsData={options} rowComponent={renderRow} fullScreen={false} />
 }
