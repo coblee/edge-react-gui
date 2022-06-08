@@ -1,12 +1,13 @@
 // @flow
-
+import { useCavy } from 'cavy'
 import * as React from 'react'
-import { Platform, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
+import { Platform, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated'
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import IonIcon from 'react-native-vector-icons/Ionicons'
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from '../../types/reactHooks.js'
+import { TextInput } from '../../types/reactNative.js'
 import { fixSides, mapSides, sidesToMargin } from '../../util/sides.js'
 import { cacheStyles, useTheme } from '../services/ThemeContext.js'
 
@@ -44,7 +45,8 @@ type Props = {|
   autoFocus?: boolean, // Defaults to 'true'
 
   // Unless 'blurOnClear' is passed explicitly in the props, Search Bars calls 'blur' when cleared and text inputs don't call 'blur' when cleared.
-  blurOnClear?: boolean // Defaults to 'false'
+  blurOnClear?: boolean, // Defaults to 'false'
+  testId?: string
 |}
 
 /**
@@ -83,10 +85,12 @@ export const OutlinedTextInput: Class<OutlinedTextInputRef> = forwardRef((props:
     blurOnClear = searchIcon,
     maxLength,
     secureTextEntry,
+    testId = 'onChangeText',
     ...inputProps
   } = props
   const theme = useTheme()
   const styles = getStyles(theme)
+  const generateTestHook = useCavy()
 
   const hasError = error != null
   const hasLabel = label != null
@@ -298,7 +302,6 @@ export const OutlinedTextInput: Class<OutlinedTextInputRef> = forwardRef((props:
           </TouchableWithoutFeedback>
         ) : null}
         <TextInput
-          ref={inputRef}
           {...inputProps}
           autoFocus={autoFocus}
           multiline={multiline}
@@ -312,6 +315,7 @@ export const OutlinedTextInput: Class<OutlinedTextInputRef> = forwardRef((props:
           onChangeText={onChangeText}
           onFocus={handleFocus}
           maxLength={maxLength}
+          ref={generateTestHook(`OutlinedTextInput.${testId}`, inputRef.current)}
         />
       </View>
     </TouchableWithoutFeedback>
