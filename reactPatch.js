@@ -46,14 +46,12 @@ require('./reactPatcher/index').Cavify(React, {
     'AddressModalComponent',
     'AccelerateTxModelComponent',
     'FlipInputModalComponent',
-    'ListModal',
     'PasswordReminderModalComponent',
     'TransactionAdvanceDetailsComponent',
     'TransactionDetailsCategoryInput',
     'WalletListSortModalComponent',
     'MainButton',
     'QrCode',
-    'ThemedModalComponent',
     'HelpModalComponent',
     'HelpModal',
     'MainComponent',
@@ -79,6 +77,7 @@ require('./reactPatcher/index').Cavify(React, {
     'WalletListSwipeable',
     'WalletListSwipeableRow',
     'OutlinedTextInput',
-    'CountryListModal'
+    'CreateWalletNameComponent',
+    'CreateWalletSelectCryptoComponent'
   ]
 })
